@@ -22,3 +22,16 @@
 .points-all th,.points-all td{padding:8px 14px}
 .points-all th:not(:first-child){text-align:right}
 .points-all tbody tr:nth-child(even){background:#f9fbfe}
+
+/* v8.9: freeze Rank, Player Name, Points, and 大会数 as a single block. */
+.table-wrap{--rank-width:72px;--name-width:170px;--points-width:100px;--count-width:86px}
+.table-wrap .sticky-rank,.table-wrap .sticky-name,.table-wrap .sticky-points,.table-wrap .sticky-count{
+  position:sticky;box-sizing:border-box;background:#fff;
+}
+.table-wrap .sticky-rank{left:0;width:var(--rank-width);min-width:var(--rank-width);max-width:var(--rank-width);z-index:4}
+.table-wrap .sticky-name{left:var(--rank-width);width:var(--name-width);min-width:var(--name-width);max-width:var(--name-width);box-shadow:none;z-index:4}
+.table-wrap .sticky-points{left:calc(var(--rank-width) + var(--name-width));width:var(--points-width);min-width:var(--points-width);max-width:var(--points-width);z-index:4}
+.table-wrap .sticky-count{left:calc(var(--rank-width) + var(--name-width) + var(--points-width));width:var(--count-width);min-width:var(--count-width);max-width:var(--count-width);box-shadow:2px 0 0 #dfe5ee;z-index:4}
+.table-wrap thead .sticky-rank,.table-wrap thead .sticky-name,.table-wrap thead .sticky-points,.table-wrap thead .sticky-count{background:#eaf0f8;z-index:9}
+.table-wrap tr:hover .sticky-rank,.table-wrap tr:hover .sticky-name,.table-wrap tr:hover .sticky-points,.table-wrap tr:hover .sticky-count{background:#f7faff}
+@media(max-width:720px){.table-wrap{--rank-width:58px;--name-width:142px;--points-width:88px;--count-width:74px}}
