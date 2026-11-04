@@ -55,3 +55,6 @@
 .points-dialog .points-table{max-height:none;overflow:auto}
 .points-dialog .points-all{min-width:500px}
 @media(max-width:720px){.toolbar .points-open{flex:0 0 auto}}
+
+/* v8.11: visually separate elimination points from final placements */
+.points-grid tr.elimination-row:first-of-type td{border-top:2px solid #aebacf}

@@ -89,6 +89,15 @@ function renderPoints(){
     }
     body.append(tr);
   }
+  // Elimination-round points are shared across formats when the round is used.
+  const rounds=[['SF',360],['QF',180],['4R',90],['3R',45],['2R',25],['1R',10]];
+  for(const [round,points] of rounds){
+    const tr=elt('tr','elimination-row');tr.append(elt('td','',round));
+    for(const mode of ['FFA','2v2','3v3','4v4','6v6']){
+      tr.append(elt('td','num',points.toLocaleString('ja-JP')));
+    }
+    body.append(tr);
+  }
   table.append(body);$('points-table').replaceChildren(table);
 }
 function activeIndices(){
