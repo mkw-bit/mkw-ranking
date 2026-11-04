@@ -5,6 +5,8 @@ const elt = (tag,cls='',val) => {const e=document.createElement(tag);e.className
 let data=null;
 let eventSortIndex=null;
 let eventSortReverse=false;
+let primarySort='';
+let primarySortReverse=false;
 function parseDate(str) {
   const m=String(str||'').match(/(20\d{2})[-/](\d{1,2})[-/](\d{1,2})/);
   if (!m) return null;
@@ -42,23 +44,17 @@ function teamFor(player,event,index,value){
   if(teams && typeof teams==='object')return String(teams[event.id]??teams[event.name]??teams[index]??'').trim();
   return '';
 }
-function decorateResult(value,team){
+function decorateResult(value,team,mode){
   const raw=resultText(value);
-  const item=decorate(raw);
-  if(!team || /^A\s*\//i.test(raw))return item;
-  const result=elt('span','team-result');
+  if(!team || /^A\s*\//i.test(raw))return decorate(raw,mode);
   const split=raw.match(/^(.*?)\s*\/\s*(\d+\s*pt)\s*$/i);
-  if(split){
-    const prefix=split[1].trim();
-    const prefixEl=decorate(prefix);
-    result.append(prefixEl,text(' / '));
-    result.append(elt('span','team-name',team),text(' / '+split[2]));
-  }else{
-    result.append(item,text(' / '));result.append(elt('span','team-name',team));
-  }
-  return result;
+  if(!split)return decorate(raw+' / '+team,mode);
+  const prefix=split[1].trim();
+  // Avoid duplicating a team name already present in the exported result.
+  if(prefix.split('/').slice(1).some(part=>part.trim()===team))return decorate(raw,mode);
+  return decorate(prefix+' / '+team+' / '+split[2],mode);
 }
-function decorate(v){
+function decorate(v,mode){
   v=String(v||'');
   const p=resultParts(resultText(v));
   if(p.absent || p.stage==='SF' || p.stage==='QF' || /^[1-9]R$/.test(p.stage) || p.stage==='SEMIFINALISTS')return text(v);
@@ -67,21 +63,26 @@ function decorate(v){
   else if(p.place===1)cls='first';
   else if(p.place===2)cls='second';
   else if(p.place===3)cls='third';
-  else if(p.place!==null && p.place>=4 && p.place<=24 && score(v)>=600)cls='other';
+  else if(p.place!==null && p.place>=4 && p.place<=24/(teamSizes[mode]||1) && score(v)>0)cls='other';
   if(!cls)return text(v);
   const b=elt('span','badge '+cls,v);return b;
 }
 const finalFFA=[1800,1200,1080,800,800,800,720,720,720,720,720,720,540,540,540,540,540,540,540,540,540,540,540,540];
 const teamSizes={FFA:1,'2v2':2,'3v3':3,'4v4':4,'6v6':6};
 function renderPoints(){
-  const mode=$('points-mode').value, size=teamSizes[mode]||1;
-  const table=elt('table','points-grid');
-  const head=elt('thead'), hr=elt('tr');
-  ['決勝順位','Points'].forEach(t=>hr.append(elt('th','',t)));head.append(hr);table.append(head);
+  const table=elt('table','points-grid points-all');
+  const head=elt('thead'),hr=elt('tr');
+  ['決勝順位','FFA','2v2','3v3','4v4','6v6'].forEach(s=>hr.append(elt('th','',s)));
+  head.append(hr);table.append(head);
   const body=elt('tbody');
-  for(let i=0;i<24;i+=size){
-    const tr=elt('tr');tr.append(elt('td','',`${i/size+1}位`));
-    tr.append(elt('td','num',finalFFA.slice(i,i+size).reduce((a,b)=>a+b,0)/size));body.append(tr);
+  for(let rank=1;rank<=24;rank++){
+    const tr=elt('tr');tr.append(elt('td','',`${rank}位`));
+    for(const mode of ['FFA','2v2','3v3','4v4','6v6']){
+      const size=teamSizes[mode];
+      const points=(rank*size<=24) ? finalFFA.slice((rank-1)*size,rank*size).reduce((a,b)=>a+b,0)/size : '—';
+      tr.append(elt('td','num',typeof points==='number'?points.toLocaleString('ja-JP'):points));
+    }
+    body.append(tr);
   }
   table.append(body);$('points-table').replaceChildren(table);
 }
@@ -99,7 +100,22 @@ function render(){
   if(!data)return;
   const included=activeIndices();
   const tr=elt('tr');
-  [['順位','sticky-rank'],['プレイヤー名','sticky-name'],['Points','num'],['大会数','num']].forEach(([t,c])=>tr.append(elt('th',c,t)));
+  [['Rank','sticky-rank','rank'],['Player Name','sticky-name',null],['Points','num','points'],['大会数','num',null]].forEach(([t,c,key])=>{
+    const th=elt('th',c);
+    if(key){
+      const btn=elt('button','header-sort',t);
+      btn.type='button';btn.setAttribute('aria-label',t+'で並び替え');
+      btn.append(elt('span','sort-arrow',primarySort===key?(primarySortReverse?' ▼':' ▲'):' ↕'));
+      btn.addEventListener('click',()=>{
+        if(primarySort===key)primarySortReverse=!primarySortReverse;
+        else {primarySort=key;primarySortReverse=(key==='points');}
+        eventSortIndex=null;
+        render();
+      });
+      th.append(btn);
+    }else th.append(text(t));
+    tr.append(th);
+  });
   included.forEach(({ev,i})=>{
     const th=elt('th','event-heading');const btn=elt('button','event-sort',ev.name);
     btn.type='button';btn.title='この大会の順位で並び替え';
@@ -107,6 +123,7 @@ function render(){
     btn.addEventListener('click',()=>{
       if(eventSortIndex===i)eventSortReverse=!eventSortReverse;
       else {eventSortIndex=i;eventSortReverse=false;}
+      primarySort='';
       render();
     });
     th.append(btn,elt('small','',ev.date));tr.append(th);
@@ -115,9 +132,10 @@ function render(){
   const rows=data.players.map(p=>{
     const res=included.map(({i})=>p.results?.[i] ?? 'A / 0pt');
     const teamNames=included.map(({ev,i},col)=>teamFor(p,ev,i,res[col]));
+    const modes=included.map(({ev})=>ev.mode);
     const points=res.reduce((sum,v)=>sum+score(resultText(v)),0);
     const count=res.filter(v=>!/^A\s*\//i.test(resultText(v))).length;
-    return {name:p.name,points,count,res,teamNames};
+    return {name:p.name,points,count,res,teamNames,modes};
   }).filter(p=>p.count>0);
   rows.sort((a,b)=>b.points-a.points||b.count-a.count||a.name.localeCompare(b.name,'ja'));
   let prior=null, rank=0;
@@ -130,11 +148,14 @@ function render(){
       (resultSortValue(a.res[column])-resultSortValue(b.res[column]))*(eventSortReverse?-1:1) || a.rank-b.rank);
     else eventSortIndex=null;
   }
-  if(eventSortIndex===null && $('sort').value==='name')filtered.sort((a,b)=>a.name.localeCompare(b.name,'ja'));
-  if(eventSortIndex===null && $('sort').value==='participations')filtered.sort((a,b)=>b.count-a.count||a.rank-b.rank);
+  if(eventSortIndex===null && (primarySort==='rank'||primarySort==='points')){
+    filtered.sort((a,b)=> (a.rank-b.rank)*(primarySortReverse?-1:1) || a.name.localeCompare(b.name,'ja'));
+  }
+  if(eventSortIndex===null && $('sort').value==='name' && primarySort!=='rank' && primarySort!=='points')filtered.sort((a,b)=>a.name.localeCompare(b.name,'ja'));
+  if(eventSortIndex===null && $('sort').value==='participations' && primarySort!=='rank' && primarySort!=='points')filtered.sort((a,b)=>b.count-a.count||a.rank-b.rank);
   const shown=$('limit').value==='all'?filtered:filtered.slice(0,Number($('limit').value));
   const frag=document.createDocumentFragment();
-  shown.forEach(p=>{const r=elt('tr');r.append(elt('td','sticky-rank rank',p.rank),elt('td','sticky-name',p.name),elt('td','num points',p.points.toLocaleString('ja-JP')),elt('td','num',p.count));p.res.forEach((v,i)=>{const c=elt('td');c.append(decorateResult(v,p.teamNames[i]));r.append(c);});frag.append(r);});
+  shown.forEach(p=>{const r=elt('tr');r.append(elt('td','sticky-rank rank',p.rank),elt('td','sticky-name',p.name),elt('td','num points',p.points.toLocaleString('ja-JP')),elt('td','num',p.count));p.res.forEach((v,i)=>{const c=elt('td');c.append(decorateResult(v,p.teamNames[i],p.modes[i]));r.append(c);});frag.append(r);});
   $('tbody').replaceChildren(frag);
   $('players-count').textContent=rows.length.toLocaleString('ja-JP');
   $('events-count').textContent=included.length.toLocaleString('ja-JP');
@@ -148,9 +169,8 @@ async function start(){try{
   const seasons=[...new Set(data.events.map(beginning).map(seasonFor).filter(Boolean))].sort();
   for(const season of seasons){if([...$('period').options].some(o=>o.value===season))continue;const opt=elt('option','',season);opt.value=season;$('period').append(opt);}
   $('updated').textContent=data.updated?'データ更新：'+data.updated:'更新日未設定';
-  ['period','mode','sort','limit','search'].forEach(id=>$(id).addEventListener(id==='search'?'input':'change',()=>{if(id==='sort'||id==='mode'||id==='period')eventSortIndex=null;render();}));
+  ['period','mode','sort','limit','search'].forEach(id=>$(id).addEventListener(id==='search'?'input':'change',()=>{if(id==='sort'){eventSortIndex=null;primarySort='';}if(id==='mode'||id==='period')eventSortIndex=null;render();}));
   render();
 }catch(e){console.error(e);$('status').textContent='読み込みに失敗しました。ranking.jsonが同じ階層にあるか確認してください。';}}
-$('points-mode').addEventListener('change',renderPoints);
 renderPoints();
 start();

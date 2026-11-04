@@ -12,3 +12,13 @@
 .table-wrap .event-heading small{display:block;white-space:nowrap}
 .team-result{white-space:nowrap}
 .team-result .team-name{font-weight:500;color:var(--muted)}
+
+/* v8.8: sortable fixed headings and all-format points matrix */
+.header-sort{border:0;background:transparent;color:inherit;padding:0;text-align:left;font:inherit;font-weight:700;cursor:pointer;white-space:nowrap}
+.header-sort:hover{text-decoration:underline;color:#214e92}
+.header-sort:focus-visible{outline:2px solid var(--primary);border-radius:3px}
+.points-table{max-width:none;max-height:none;overflow-x:auto;overflow-y:visible}
+.points-all{min-width:570px;width:100%;font-variant-numeric:tabular-nums}
+.points-all th,.points-all td{padding:8px 14px}
+.points-all th:not(:first-child){text-align:right}
+.points-all tbody tr:nth-child(even){background:#f9fbfe}
