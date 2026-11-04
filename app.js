@@ -36,6 +36,45 @@ function resultSortValue(v){
 function resultText(value){
   return value && typeof value==='object' ? String(value.result ?? value.label ?? value.text ?? '') : String(value??'');
 }
+// Only players with a recorded result in the selected event are displayed.
+// Both click directions retain the same participant list; A / 0pt is excluded.
+function hasEventResult(value){
+  const result=resultText(value);
+  const p=resultParts(result);
+  return !p.absent && !p.unconfirmed &&
+    (p.place!==null || ['FINALIST','SF','QF','4R','3R','2R','1R'].includes(p.stage));
+}
+function resultTeamName(value,explicitTeam){
+  if(explicitTeam)return String(explicitTeam).trim();
+  if(value && typeof value==='object'){
+    const team=value.team ?? value.team_name ?? value.teamName;
+    if(team)return String(team).trim();
+  }
+  // Older exports embed the 6v6 team in the result string itself:
+  // '3rd / anb / 540pt' or 'SF / Team / 360pt'.
+  const parts=resultText(value).split('/').map(v=>v.trim());
+  if(parts.length>=3 && /^\d+\s*pt$/i.test(parts[parts.length-1]))
+    return parts.slice(1,-1).join(' / ').trim();
+  return '';
+}
+function compareEventRows(a,b,column,mode,reverse){
+  const dir=reverse?-1:1;
+  const difference=resultSortValue(a.res[column])-resultSortValue(b.res[column]);
+  if(difference)return difference*dir;
+  // In 6v6, keep all members of one team together when their placements tie.
+  // This also works with older ranking.json strings containing team names.
+  if(mode==='6v6'){
+    const aTeam=resultTeamName(a.res[column],a.teamNames[column]);
+    const bTeam=resultTeamName(b.res[column],b.teamNames[column]);
+    if(aTeam && bTeam && aTeam!==bTeam){
+      const cmp=aTeam.localeCompare(bTeam,'ja',{sensitivity:'base'});
+      if(cmp)return cmp; // Team order stays stable within either rank direction.
+    }else if(aTeam!==bTeam){
+      return aTeam?-1:1; // Missing team metadata last.
+    }
+  }
+  return a.rank-b.rank || a.name.localeCompare(b.name,'ja');
+}
 function teamFor(player,event,index,value){
   if(event.mode!=='6v6')return '';
   if(value && typeof value==='object' && value.team)return String(value.team).trim();
@@ -77,7 +116,7 @@ const teamSizes={FFA:1,'2v2':2,'3v3':3,'4v4':4,'6v6':6};
 function renderPoints(){
   const table=elt('table','points-grid points-all');
   const head=elt('thead'),hr=elt('tr');
-  ['決勝順位','FFA','2v2','3v3','4v4','6v6'].forEach(s=>hr.append(elt('th','',s)));
+  ['順位','FFA','2v2','3v3','4v4','6v6'].forEach(s=>hr.append(elt('th','',s)));
   head.append(hr);table.append(head);
   const body=elt('tbody');
   for(let rank=1;rank<=24;rank++){
@@ -155,12 +194,13 @@ function render(){
   let prior=null, rank=0;
   rows.forEach((p,i)=>{if(p.points!==prior)rank=i+1;p.rank=rank;prior=p.points;});
   const query=$('search').value.trim().toLocaleLowerCase();
-  const filtered=rows.filter(p=>p.name.toLocaleLowerCase().includes(query));
+  let filtered=rows.filter(p=>p.name.toLocaleLowerCase().includes(query));
   if(eventSortIndex!==null){
     const column=included.findIndex(({i})=>i===eventSortIndex);
-    if(column>=0)filtered.sort((a,b)=>
-      (resultSortValue(a.res[column])-resultSortValue(b.res[column]))*(eventSortReverse?-1:1) || a.rank-b.rank);
-    else eventSortIndex=null;
+    if(column>=0){
+      filtered=filtered.filter(p=>hasEventResult(p.res[column]));
+      filtered.sort((a,b)=>compareEventRows(a,b,column,included[column].ev.mode,eventSortReverse));
+    }else eventSortIndex=null;
   }
   if(eventSortIndex===null && (primarySort==='rank'||primarySort==='points')){
     filtered.sort((a,b)=> (a.rank-b.rank)*(primarySortReverse?-1:1) || a.name.localeCompare(b.name,'ja'));
