@@ -209,8 +209,7 @@ function render(){
   // Limit the eligible population by OVERALL Points rank before any tournament
   // sorting. All Finalist-experienced players in the selected period are added.
   // Tied ranks at the boundary are included together.
-  const limit=$('limit').value;
-  const eligible=limit==='all' ? rows : rows.filter(p=>p.rank<=Number(limit)||p.hasFinalist);
+  const eligible=rows.filter(p=>p.rank<=100||p.hasFinalist);
   const query=$('search').value.trim().toLocaleLowerCase();
   let filtered=eligible.filter(p=>p.name.toLocaleLowerCase().includes(query));
   if(eventSortIndex!==null){
@@ -240,7 +239,7 @@ async function start(){try{
   const seasons=[...new Set(data.events.map(beginning).map(seasonFor).filter(Boolean))].sort();
   for(const season of seasons){if([...$('period').options].some(o=>o.value===season))continue;const opt=elt('option','',season);opt.value=season;$('period').append(opt);}
   $('updated').textContent=data.updated?'データ更新：'+data.updated:'更新日未設定';
-  ['period','mode','limit','search'].forEach(id=>$(id).addEventListener(id==='search'?'input':'change',()=>{if(id==='mode'||id==='period')eventSortIndex=null;render();}));
+  ['period','mode','search'].forEach(id=>$(id).addEventListener(id==='search'?'input':'change',()=>{if(id==='mode'||id==='period')eventSortIndex=null;render();}));
   render();
 }catch(e){console.error(e);$('status').textContent='読み込みに失敗しました。ranking.jsonが同じ階層にあるか確認してください。';}}
 renderPoints();
