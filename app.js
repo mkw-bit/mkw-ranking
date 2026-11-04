@@ -11,11 +11,13 @@ function elt(tag, cls, value) {
 function cell(tag, cls, value) { return elt(tag, cls, value); }
 function decorate(value) {
   const v = String(value ?? '');
+  // SF・QFおよびそれ以前に敗退したラウンドの成績は無着色で表示。
+  // '9th (SF)' のような総合順位付き表記も対象。
+  if (/(?:^|[^a-z0-9])(?:SF|QF|[1-9][0-9]*R)(?=$|[^a-z0-9])|Semifinal|Quarterfinal/i.test(v) || /^A\s*\//i.test(v)) return text(v);
   const b = elt('span', 'badge');
   if (/^(1st|1位)/i.test(v)) b.classList.add('first');
   else if (/^(2nd|2位)/i.test(v)) b.classList.add('second');
   else if (/^(3rd|3位)/i.test(v)) b.classList.add('third');
-  else if (/\bSF\b|Semifinal/i.test(v)) b.classList.add('sf');
   else if (/^A\s*\//.test(v)) b.classList.add('absent');
   else b.classList.add('other');
   b.append(text(v)); return b;
