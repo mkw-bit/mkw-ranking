@@ -25,15 +25,42 @@ function resultParts(v){
   return {label,place:place?+place[1]:null,stage:stage.toUpperCase(),absent:/^A\s*\//i.test(raw),unconfirmed:/unconfirmed/i.test(raw)};
 }
 function resultSortValue(v){
-  const p=resultParts(v);
+  const p=resultParts(resultText(v));
   if(p.absent)return 1000000;
   if(p.place!==null)return p.place;
   const stageRanks={FINALIST:25,SF:100,QF:200,'4R':300,'3R':400,'2R':500,'1R':600,R:650};
   return stageRanks[p.stage]??900000;
 }
+function resultText(value){
+  return value && typeof value==='object' ? String(value.result ?? value.label ?? value.text ?? '') : String(value??'');
+}
+function teamFor(player,event,index,value){
+  if(event.mode!=='6v6')return '';
+  if(value && typeof value==='object' && value.team)return String(value.team).trim();
+  const teams=player.teams ?? player.team_names ?? player.teamNames;
+  if(Array.isArray(teams))return String(teams[index]??'').trim();
+  if(teams && typeof teams==='object')return String(teams[event.id]??teams[event.name]??teams[index]??'').trim();
+  return '';
+}
+function decorateResult(value,team){
+  const raw=resultText(value);
+  const item=decorate(raw);
+  if(!team || /^A\s*\//i.test(raw))return item;
+  const result=elt('span','team-result');
+  const split=raw.match(/^(.*?)\s*\/\s*(\d+\s*pt)\s*$/i);
+  if(split){
+    const prefix=split[1].trim();
+    const prefixEl=decorate(prefix);
+    result.append(prefixEl,text(' / '));
+    result.append(elt('span','team-name',team),text(' / '+split[2]));
+  }else{
+    result.append(item,text(' / '));result.append(elt('span','team-name',team));
+  }
+  return result;
+}
 function decorate(v){
   v=String(v||'');
-  const p=resultParts(v);
+  const p=resultParts(resultText(v));
   if(p.absent || p.stage==='SF' || p.stage==='QF' || /^[1-9]R$/.test(p.stage) || p.stage==='SEMIFINALISTS')return text(v);
   let cls='';
   if(p.stage==='FINALIST')cls='other';
@@ -87,9 +114,10 @@ function render(){
   $('thead').replaceChildren(tr);
   const rows=data.players.map(p=>{
     const res=included.map(({i})=>p.results?.[i] ?? 'A / 0pt');
-    const points=res.reduce((sum,v)=>sum+score(v),0);
-    const count=res.filter(v=>!/^A\s*\//i.test(v)).length;
-    return {name:p.name,points,count,res};
+    const teamNames=included.map(({ev,i},col)=>teamFor(p,ev,i,res[col]));
+    const points=res.reduce((sum,v)=>sum+score(resultText(v)),0);
+    const count=res.filter(v=>!/^A\s*\//i.test(resultText(v))).length;
+    return {name:p.name,points,count,res,teamNames};
   }).filter(p=>p.count>0);
   rows.sort((a,b)=>b.points-a.points||b.count-a.count||a.name.localeCompare(b.name,'ja'));
   let prior=null, rank=0;
@@ -106,7 +134,7 @@ function render(){
   if(eventSortIndex===null && $('sort').value==='participations')filtered.sort((a,b)=>b.count-a.count||a.rank-b.rank);
   const shown=$('limit').value==='all'?filtered:filtered.slice(0,Number($('limit').value));
   const frag=document.createDocumentFragment();
-  shown.forEach(p=>{const r=elt('tr');r.append(elt('td','sticky-rank rank',p.rank),elt('td','sticky-name',p.name),elt('td','num points',p.points.toLocaleString('ja-JP')),elt('td','num',p.count));p.res.forEach(v=>{const c=elt('td');c.append(decorate(v));r.append(c);});frag.append(r);});
+  shown.forEach(p=>{const r=elt('tr');r.append(elt('td','sticky-rank rank',p.rank),elt('td','sticky-name',p.name),elt('td','num points',p.points.toLocaleString('ja-JP')),elt('td','num',p.count));p.res.forEach((v,i)=>{const c=elt('td');c.append(decorateResult(v,p.teamNames[i]));r.append(c);});frag.append(r);});
   $('tbody').replaceChildren(frag);
   $('players-count').textContent=rows.length.toLocaleString('ja-JP');
   $('events-count').textContent=included.length.toLocaleString('ja-JP');
