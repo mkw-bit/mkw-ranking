@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>MKCentral 累計獲得ポイントランキング</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div class="container head">
+    <div><p class="eyebrow">MKCentral · Tournament Rankings</p><h1>累計獲得ポイントランキング</h1><p class="sub">大会別の成績と獲得ポイントを一覧で表示します</p></div>
+    <div class="counts"><div><strong id="players-count">—</strong><span>選手</span></div><div><strong id="events-count">—</strong><span>大会</span></div></div>
+  </div>
+</header>
+<main class="container">
+  <section class="toolbar" aria-label="検索と表示設定">
+    <label>プレイヤー名で検索<input id="search" type="search" placeholder="名前を入力" autocomplete="off"></label>
+    <label>並び順<select id="sort"><option value="rank">累計Points順</option><option value="name">名前順</option><option value="participations">参加大会数順</option></select></label>
+    <label>表示件数<select id="limit"><option value="100">上位100名</option><option value="500">上位500名</option><option value="all">全選手</option></select></label>
+  </section>
+  <p class="meta"><span id="updated">—</span><span id="shown">—</span></p>
+  <p class="hint">表は左右にスクロールできます。名前・フレンドコードなどの個人識別情報は公開していません（選手名のみ表示）。</p>
+  <div class="table-wrap" role="region" tabindex="0" aria-label="ランキング表（横スクロール可能）">
+    <table><thead id="thead"></thead><tbody id="tbody"><tr><td>データを読み込んでいます…</td></tr></tbody></table>
+  </div>
+  <p id="status" class="status" role="status"></p>
+  <footer>データは管理者が更新します。大会当時の表記や確定済み配点に基づくランキングです。</footer>
+</main>
+<script src="app.js" defer></script>
+</body>
+</html>
