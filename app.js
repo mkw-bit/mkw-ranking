@@ -101,6 +101,16 @@ function decorateResult(value,team,mode){
   if(prefix.split('/').slice(1).some(part=>part.trim()===team))return decorate(raw,mode);
   return decorate(prefix+' / '+team+' / '+split[2],mode);
 }
+// A Finalist is any player with a recorded final-round finish, including
+// 4th in 6v6. Eliminated stages (SF, QF, etc.) never qualify.
+function isFinalistResult(value,mode){
+  const raw=resultText(value);
+  const p=resultParts(raw);
+  if(p.absent||p.unconfirmed||['SF','QF','SEMIFINALISTS'].includes(p.stage)||/^[1-9]R$/.test(p.stage))return false;
+  if(p.stage==='FINALIST')return true;
+  const size=teamSizes[mode]||1;
+  return p.place!==null&&p.place>=1&&p.place<=24/size&&score(raw)>0;
+}
 function decorate(v,mode){
   v=String(v||'');
   const p=resultParts(resultText(v));
@@ -191,13 +201,18 @@ function render(){
     const modes=included.map(({ev})=>ev.mode);
     const points=res.reduce((sum,v)=>sum+score(resultText(v)),0);
     const count=res.filter(v=>!/^A\s*\//i.test(resultText(v))).length;
-    return {name:p.name,points,count,res,teamNames,modes};
+    return {name:p.name,points,count,res,teamNames,modes,hasFinalist:res.some((value,i)=>isFinalistResult(value,modes[i]))};
   }).filter(p=>p.count>0);
   rows.sort((a,b)=>b.points-a.points||b.count-a.count||a.name.localeCompare(b.name,'ja'));
   let prior=null, rank=0;
   rows.forEach((p,i)=>{if(p.points!==prior)rank=i+1;p.rank=rank;prior=p.points;});
+  // Limit the eligible population by OVERALL Points rank before any tournament
+  // sorting. All Finalist-experienced players in the selected period are added.
+  // Tied ranks at the boundary are included together.
+  const limit=$('limit').value;
+  const eligible=limit==='all' ? rows : rows.filter(p=>p.rank<=Number(limit)||p.hasFinalist);
   const query=$('search').value.trim().toLocaleLowerCase();
-  let filtered=rows.filter(p=>p.name.toLocaleLowerCase().includes(query));
+  let filtered=eligible.filter(p=>p.name.toLocaleLowerCase().includes(query));
   if(eventSortIndex!==null){
     const column=included.findIndex(({i})=>i===eventSortIndex);
     if(column>=0){
@@ -208,8 +223,8 @@ function render(){
   if(eventSortIndex===null && (primarySort==='rank'||primarySort==='points')){
     filtered.sort((a,b)=> (a.rank-b.rank)*(primarySortReverse?-1:1) || a.name.localeCompare(b.name,'ja'));
   }
-  // Tournament sorting always shows ALL entrants, independent of the top-N limit.
-  const shown=(eventSortIndex!==null || $('limit').value==='all')?filtered:filtered.slice(0,Number($('limit').value));
+  // Tournament sorting respects the same top-N + Finalist-experience filter.
+  const shown=filtered;
   const frag=document.createDocumentFragment();
   shown.forEach(p=>{const r=elt('tr');r.append(elt('td','sticky-rank rank',p.rank),elt('td','sticky-name',p.name),elt('td','sticky-points num points',p.points.toLocaleString('ja-JP')),elt('td','sticky-count num',p.count));p.res.forEach((v,i)=>{const c=elt('td');c.append(decorateResult(v,p.teamNames[i],p.modes[i]));r.append(c);});frag.append(r);});
   $('tbody').replaceChildren(frag);
