@@ -156,8 +156,6 @@ function render(){
   if(eventSortIndex===null && (primarySort==='rank'||primarySort==='points')){
     filtered.sort((a,b)=> (a.rank-b.rank)*(primarySortReverse?-1:1) || a.name.localeCompare(b.name,'ja'));
   }
-  if(eventSortIndex===null && $('sort').value==='name' && primarySort!=='rank' && primarySort!=='points')filtered.sort((a,b)=>a.name.localeCompare(b.name,'ja'));
-  if(eventSortIndex===null && $('sort').value==='participations' && primarySort!=='rank' && primarySort!=='points')filtered.sort((a,b)=>b.count-a.count||a.rank-b.rank);
   const shown=$('limit').value==='all'?filtered:filtered.slice(0,Number($('limit').value));
   const frag=document.createDocumentFragment();
   shown.forEach(p=>{const r=elt('tr');r.append(elt('td','sticky-rank rank',p.rank),elt('td','sticky-name',p.name),elt('td','sticky-points num points',p.points.toLocaleString('ja-JP')),elt('td','sticky-count num',p.count));p.res.forEach((v,i)=>{const c=elt('td');c.append(decorateResult(v,p.teamNames[i],p.modes[i]));r.append(c);});frag.append(r);});
@@ -174,8 +172,16 @@ async function start(){try{
   const seasons=[...new Set(data.events.map(beginning).map(seasonFor).filter(Boolean))].sort();
   for(const season of seasons){if([...$('period').options].some(o=>o.value===season))continue;const opt=elt('option','',season);opt.value=season;$('period').append(opt);}
   $('updated').textContent=data.updated?'データ更新：'+data.updated:'更新日未設定';
-  ['period','mode','sort','limit','search'].forEach(id=>$(id).addEventListener(id==='search'?'input':'change',()=>{if(id==='sort'){eventSortIndex=null;primarySort='';}if(id==='mode'||id==='period')eventSortIndex=null;render();}));
+  ['period','mode','limit','search'].forEach(id=>$(id).addEventListener(id==='search'?'input':'change',()=>{if(id==='mode'||id==='period')eventSortIndex=null;render();}));
   render();
 }catch(e){console.error(e);$('status').textContent='読み込みに失敗しました。ranking.jsonが同じ階層にあるか確認してください。';}}
 renderPoints();
 start();
+
+// v8.10: Points matrix popup (native dialog supports Escape to close).
+const pointsDialog=$('points-dialog');
+$('open-points').addEventListener('click',()=>pointsDialog.showModal());
+$('close-points').addEventListener('click',()=>pointsDialog.close());
+pointsDialog.addEventListener('click',event=>{
+  if(event.target===pointsDialog)pointsDialog.close();
+});
