@@ -1,6 +1,6 @@
 {
   "title": "MKCentral 累計獲得ポイントランキング",
-  "updated": "2026-11-04 21:34 +0900",
+  "updated": "2026-11-04 22:45 +0900",
   "filter_year": "全期間",
   "filter_mode": "全形式",
   "stats": {
@@ -12,152 +12,182 @@
     {
       "name": "SUMMIT 6v6 #3",
       "date": "2026/10/31～11/01",
-      "mode": "6v6"
+      "mode": "6v6",
+      "id": 780
     },
     {
       "name": "MKB 第3回トリプルス杯",
       "date": "2026/10/24～10/25",
-      "mode": "3v3"
+      "mode": "3v3",
+      "id": 988282545
     },
     {
       "name": "SUMMIT 4v4 #3",
       "date": "2026/10/17～10/18",
-      "mode": "4v4"
+      "mode": "4v4",
+      "id": 773
     },
     {
       "name": "MKB 第3回タッグ杯",
       "date": "2026/10/10～10/11",
-      "mode": "2v2"
+      "mode": "2v2",
+      "id": 910258246
     },
     {
       "name": "SUMMIT 3v3 #3",
       "date": "2026/09/26～09/27",
-      "mode": "3v3"
+      "mode": "3v3",
+      "id": 767
     },
     {
       "name": "MKB 第6回個人杯",
       "date": "2026/09/12～09/13",
-      "mode": "FFA"
+      "mode": "FFA",
+      "id": 915516418
     },
     {
       "name": "MKB 第2回トリプルス杯",
       "date": "2026/09/05～09/06",
-      "mode": "3v3"
+      "mode": "3v3",
+      "id": 964154898
     },
     {
       "name": "SUMMIT 2v2 #3",
       "date": "2026/08/29～08/30",
-      "mode": "2v2"
+      "mode": "2v2",
+      "id": 751
     },
     {
       "name": "SUMMIT 6v6 #2",
       "date": "2026/08/15～08/16",
-      "mode": "6v6"
+      "mode": "6v6",
+      "id": 741
     },
     {
       "name": "MKB 第5回個人杯",
       "date": "2026/08/08～08/09",
-      "mode": "FFA"
+      "mode": "FFA",
+      "id": 975425982
     },
     {
       "name": "SUMMIT FFA #3",
       "date": "2026/07/04～07/05",
-      "mode": "FFA"
+      "mode": "FFA",
+      "id": 729
     },
     {
       "name": "MKB 第1回フォーマンセル杯",
       "date": "2026/06/27～06/28",
-      "mode": "4v4"
+      "mode": "4v4",
+      "id": 947106457
     },
     {
       "name": "MKB 1周年大規模個人杯",
       "date": "2026/06/06～06/07",
-      "mode": "FFA"
+      "mode": "FFA",
+      "id": 900533220
     },
     {
       "name": "SUMMIT 4v4 #2",
       "date": "2026/05/30～05/31",
-      "mode": "4v4"
+      "mode": "4v4",
+      "id": 717
     },
     {
       "name": "SUMMIT 3v3 #2",
       "date": "2026/05/16～05/17",
-      "mode": "3v3"
+      "mode": "3v3",
+      "id": 709
     },
     {
       "name": "MKB 第2回MKB杯",
       "date": "2026/05/09～05/10",
-      "mode": "6v6"
+      "mode": "6v6",
+      "id": 971651765
     },
     {
       "name": "SUMMIT 2v2 #2",
       "date": "2026/04/25～04/26",
-      "mode": "2v2"
+      "mode": "2v2",
+      "id": 698
     },
     {
       "name": "MKB 第1回トリプルス杯",
       "date": "2026/04/11～04/12",
-      "mode": "3v3"
+      "mode": "3v3",
+      "id": 963215897
     },
     {
       "name": "SUMMIT FFA #2",
       "date": "2026/04/04～04/05",
-      "mode": "FFA"
+      "mode": "FFA",
+      "id": 688
     },
     {
       "name": "MKB 第2回タッグ杯",
       "date": "2026/03/28～03/29",
-      "mode": "2v2"
+      "mode": "2v2",
+      "id": 939121305
     },
     {
       "name": "MKB 第3回個人杯",
       "date": "2026/03/21～03/22",
-      "mode": "FFA"
+      "mode": "FFA",
+      "id": 941127986
     },
     {
       "name": "SUMMIT 6v6 #1",
       "date": "2026/03/14～03/15",
-      "mode": "6v6"
+      "mode": "6v6",
+      "id": 675
     },
     {
       "name": "SUMMIT 4v4 #1",
       "date": "2026/02/21～02/22",
-      "mode": "4v4"
+      "mode": "4v4",
+      "id": 661
     },
     {
       "name": "SUMMIT 3v3 #1",
       "date": "2026/01/31～02/01",
-      "mode": "3v3"
+      "mode": "3v3",
+      "id": 650
     },
     {
       "name": "MKB 第2回個人杯",
       "date": "2026/01/10～01/11",
-      "mode": "FFA"
+      "mode": "FFA",
+      "id": 926468989
     },
     {
       "name": "SUMMIT 2v2 #1",
       "date": "2025/12/20～12/21",
-      "mode": "2v2"
+      "mode": "2v2",
+      "id": 630
     },
     {
       "name": "MKB 第1回タッグ杯",
       "date": "2025/12/13～12/14",
-      "mode": "2v2"
+      "mode": "2v2",
+      "id": 937598779
     },
     {
       "name": "SUMMIT FFA #1",
       "date": "2025/11/28～11/29",
-      "mode": "FFA"
+      "mode": "FFA",
+      "id": 616
     },
     {
       "name": "MKB 第1回MKB杯",
       "date": "2025/11/15～11/16",
-      "mode": "6v6"
+      "mode": "6v6",
+      "id": 980133424
     },
     {
       "name": "MKB 第1回個人杯",
       "date": "2025/11/01～11/02",
-      "mode": "FFA"
+      "mode": "FFA",
+      "id": 904049397
     }
   ],
   "players": [

@@ -47,7 +47,7 @@ function hasEventResult(value){
 function resultTeamName(value,explicitTeam){
   if(explicitTeam)return String(explicitTeam).trim();
   if(value && typeof value==='object'){
-    const team=value.team ?? value.team_name ?? value.teamName;
+    const team=value.team ?? value.team_name ?? value.teamName ?? value.squad_name ?? value.squadName ?? value.group_name;
     if(team)return String(team).trim();
   }
   // Older exports embed the 6v6 team in the result string itself:
@@ -77,8 +77,11 @@ function compareEventRows(a,b,column,mode,reverse){
 }
 function teamFor(player,event,index,value){
   if(event.mode!=='6v6')return '';
-  if(value && typeof value==='object' && value.team)return String(value.team).trim();
-  const teams=player.teams ?? player.team_names ?? player.teamNames;
+  if(value && typeof value==='object'){
+    const embedded=value.team ?? value.team_name ?? value.teamName ?? value.squad_name ?? value.squadName ?? value.group_name;
+    if(embedded)return String(embedded).trim();
+  }
+  const teams=player.teams ?? player.team_names ?? player.teamNames ?? player.squad_names;
   if(Array.isArray(teams))return String(teams[index]??'').trim();
   if(teams && typeof teams==='object')return String(teams[event.id]??teams[event.name]??teams[index]??'').trim();
   return '';
@@ -205,7 +208,8 @@ function render(){
   if(eventSortIndex===null && (primarySort==='rank'||primarySort==='points')){
     filtered.sort((a,b)=> (a.rank-b.rank)*(primarySortReverse?-1:1) || a.name.localeCompare(b.name,'ja'));
   }
-  const shown=$('limit').value==='all'?filtered:filtered.slice(0,Number($('limit').value));
+  // Tournament sorting always shows ALL entrants, independent of the top-N limit.
+  const shown=(eventSortIndex!==null || $('limit').value==='all')?filtered:filtered.slice(0,Number($('limit').value));
   const frag=document.createDocumentFragment();
   shown.forEach(p=>{const r=elt('tr');r.append(elt('td','sticky-rank rank',p.rank),elt('td','sticky-name',p.name),elt('td','sticky-points num points',p.points.toLocaleString('ja-JP')),elt('td','sticky-count num',p.count));p.res.forEach((v,i)=>{const c=elt('td');c.append(decorateResult(v,p.teamNames[i],p.modes[i]));r.append(c);});frag.append(r);});
   $('tbody').replaceChildren(frag);
